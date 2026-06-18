@@ -5,254 +5,105 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Badminton Doubles Scheduler (Responsive)</title>
 
-  <!-- ===== Robust CDN loader: unpkg -> jsDelivr fallback ===== -->
   <script>
-    function loadScript(src){
-      return new Promise((resolve,reject)=>{
-        const s=document.createElement("script");
-        s.src=src;
-        s.crossOrigin="anonymous";
-        s.onload=()=>resolve(src);
-        s.onerror=()=>reject(new Error("Failed to load: "+src));
-        document.head.appendChild(s);
-      });
-    }
-    (async ()=>{
-      try{
-        await loadScript("https://unpkg.com/react@18/umd/react.development.js");
-        await loadScript("https://unpkg.com/react-dom@18/umd/react-dom.development.js");
-      }catch(e1){
-        try{
-          await loadScript("https://cdn.jsdelivr.net/npm/react@18/umd/react.development.js");
-          await loadScript("https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.development.js");
-        }catch(e2){
-          console.error(e1, e2);
-          const root = document.getElementById("root");
-          if (root){
-            root.innerHTML = `
-              <div style="padding:18px;font-family:system-ui;color:#fff">
-                <div style="font-weight:900;font-size:16px;margin-bottom:8px">Cannot load React CDN</div>
-                <div style="opacity:.85;line-height:1.5">
-                  unpkg และ jsDelivr โหลดไม่สำเร็จ (อาจถูกบล็อกโดยเครือข่าย/ไฟร์วอลล์)<br/>
-                  แนะนำ: ลองเปลี่ยนเครือข่าย หรือ host ไฟล์ react/react-dom เอง
-                </div>
-              </div>
-            `;
+    window.addEventListener('error', function(e) {
+      var root = document.getElementById('root');
+      if (root && root.innerHTML.trim() === '') {
+        root.innerHTML = '<div style="padding:24px; color:white; font-family:sans-serif;"><h2>⚠️ เกิดข้อผิดพลาด (App Crash)</h2><pre style="color:#fb7185; white-space:pre-wrap; background:rgba(255,255,255,0.1); padding:12px; border-radius:12px;">' + e.message + '</pre></div>';
+      }
+    });
+
+    window.addEventListener('load', function() {
+      setTimeout(function() {
+        if (typeof React === 'undefined' || typeof ReactDOM === 'undefined' || typeof Babel === 'undefined') {
+          var root = document.getElementById('root');
+          if(root && root.innerHTML.trim() === '') {
+            root.innerHTML = '<div style="padding:24px; color:white; font-family:sans-serif; text-align:center;"><h2>⚠️ ไม่สามารถโหลดระบบได้</h2><p style="color:#fbbf24;">อินเทอร์เน็ตอาจบล็อกไฟล์จาก CDN</p></div>';
           }
         }
-      }
-    })();
+      }, 1500);
+    });
   </script>
 
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.6/babel.min.js" crossorigin="anonymous"></script>
 
   <style>
     :root{
-      --bg:#0b0f1a;
-      --border:rgba(255,255,255,0.14);
-      --text:rgba(255,255,255,0.92);
-      --muted:rgba(255,255,255,0.70);
-      --faint:rgba(255,255,255,0.55);
-      --ok:#34d399;
-      --warn:#fbbf24;
-      --bad:#fb7185;
-      --accent:#60a5fa;
-      --shadow:0 10px 30px rgba(0,0,0,0.35);
-      --radius:18px;
+      --bg:#0b0f1a; --border:rgba(255,255,255,0.14); --text:rgba(255,255,255,0.92);
+      --muted:rgba(255,255,255,0.70); --faint:rgba(255,255,255,0.55);
+      --ok:#34d399; --warn:#fbbf24; --bad:#fb7185; --accent:#60a5fa;
+      --shadow:0 10px 30px rgba(0,0,0,0.35); --radius:18px;
     }
     *{ box-sizing:border-box; }
     body{
-      margin:0;
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans Thai", sans-serif;
-      background:
-        radial-gradient(1200px 700px at 10% 10%, rgba(96,165,250,0.25), transparent 50%),
-        radial-gradient(1200px 700px at 90% 20%, rgba(167,139,250,0.22), transparent 55%),
-        radial-gradient(1200px 700px at 60% 90%, rgba(52,211,153,0.15), transparent 55%),
-        var(--bg);
+      margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans Thai", sans-serif;
+      background: radial-gradient(1200px 700px at 10% 10%, rgba(96,165,250,0.25), transparent 50%),
+                  radial-gradient(1200px 700px at 90% 20%, rgba(167,139,250,0.22), transparent 55%),
+                  radial-gradient(1200px 700px at 60% 90%, rgba(52,211,153,0.15), transparent 55%), var(--bg);
       color:var(--text);
     }
-
     .container{ max-width:1160px; margin:0 auto; padding:24px 16px 40px; }
     @media (max-width:640px){ .container{ padding:18px 12px 96px; } }
-
     .topbar{ display:flex; justify-content:space-between; align-items:flex-start; gap:14px; flex-wrap:wrap; margin-bottom:14px; }
     .title{ margin:0; font-size:20px; display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
     .subtitle{ margin:6px 0 0; color:var(--muted); font-size:13px; line-height:1.55; max-width:860px; }
     @media (max-width:640px){ .subtitle{ display:none; } }
-
-    .badge{
-      font-size:12px; padding:4px 10px;
-      border:1px solid var(--border); border-radius:999px;
-      background:rgba(255,255,255,0.06); color:var(--muted);
-      white-space:nowrap;
-    }
-
-    .pill{
-      display:inline-flex; align-items:center; gap:8px;
-      margin-top:10px;
-      font-size:12px; padding:6px 10px;
-      border-radius:999px; border:1px solid rgba(255,255,255,0.14);
-      background:rgba(255,255,255,0.06); color:var(--muted);
-      white-space:nowrap;
-    }
-
+    .badge{ font-size:12px; padding:4px 10px; border:1px solid var(--border); border-radius:999px; background:rgba(255,255,255,0.06); color:var(--muted); white-space:nowrap; }
+    .pill{ display:inline-flex; align-items:center; gap:8px; margin-top:10px; font-size:12px; padding:6px 10px; border-radius:999px; border:1px solid rgba(255,255,255,0.14); background:rgba(255,255,255,0.06); color:var(--muted); white-space:nowrap; }
     .dot{ width:8px; height:8px; border-radius:999px; background:var(--accent); box-shadow:0 0 0 4px rgba(96,165,250,0.18); }
     .dot.ok{ background:var(--ok); box-shadow:0 0 0 4px rgba(52,211,153,0.16); }
     .dot.warn{ background:var(--warn); box-shadow:0 0 0 4px rgba(251,191,36,0.16); }
     .dot.bad{ background:var(--bad); box-shadow:0 0 0 4px rgba(251,113,133,0.16); }
-
     .progressWrap{ margin-top:10px; border:1px solid rgba(255,255,255,0.12); border-radius:999px; background:rgba(255,255,255,0.05); overflow:hidden; }
-    .progressBar{ height:10px; background:linear-gradient(90deg, rgba(52,211,153,0.95), rgba(96,165,250,0.9)); width:0%; }
-
+    .progressBar{ height:10px; background:linear-gradient(90deg, rgba(52,211,153,0.95), rgba(96,165,250,0.9)); width:0%; transition: width 0.3s ease; }
     .grid{ display:grid; grid-template-columns:420px 1fr; gap:14px; align-items:start; }
     @media (max-width:980px){ .grid{ grid-template-columns:1fr; } }
-
-    .card{
-      border:1px solid var(--border);
-      background:linear-gradient(180deg, rgba(255,255,255,0.07), rgba(255,255,255,0.04));
-      border-radius:var(--radius);
-      box-shadow:var(--shadow);
-      padding:14px;
-    }
+    .card{ border:1px solid var(--border); background:linear-gradient(180deg, rgba(255,255,255,0.07), rgba(255,255,255,0.04)); border-radius:var(--radius); box-shadow:var(--shadow); padding:14px; }
     @media (max-width:640px){ .card{ padding:12px; border-radius:16px; } }
-
     .cardHeader{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; }
     .cardTitle{ margin:0; font-size:14px; font-weight:900; }
-
     label{ display:block; font-size:12px; color:var(--muted); margin:10px 0 6px; }
-
-    textarea, input:not([type="checkbox"]){
-      width:100%;
-      background:rgba(255,255,255,0.06);
-      color:var(--text);
-      border:1px solid rgba(255,255,255,0.14);
-      border-radius:14px;
-      padding:10px 12px;
-      outline:none;
-    }
+    textarea, input:not([type="checkbox"]){ width:100%; background:rgba(255,255,255,0.06); color:var(--text); border:1px solid rgba(255,255,255,0.14); border-radius:14px; padding:10px 12px; outline:none; }
     textarea{ min-height:150px; resize:vertical; }
     input[type="number"]{ width:180px; }
-    @media (max-width:640px){
-      input[type="number"]{ width:100%; }
-      textarea{ min-height:120px; }
-    }
-
+    @media (max-width:640px){ input[type="number"]{ width:100%; } textarea{ min-height:120px; } }
     .inlineField{ display:flex; gap:10px; flex-wrap:wrap; align-items:end; }
     .help{ font-size:12px; color:var(--muted); line-height:1.55; margin-top:6px; }
-
     .buttons{ display:flex; gap:10px; flex-wrap:wrap; margin-top:12px; }
-    .btn{
-      border:1px solid rgba(255,255,255,0.18);
-      background:rgba(255,255,255,0.06);
-      color:var(--text);
-      padding:10px 12px;
-      border-radius:14px;
-      cursor:pointer;
-      font-weight:900;
-      letter-spacing:0.2px;
-      user-select:none;
-      white-space:nowrap;
-    }
-    .btn.primary{
-      background:linear-gradient(135deg, rgba(96,165,250,0.8), rgba(167,139,250,0.7));
-      border-color:rgba(255,255,255,0.22);
-    }
+    .btn{ border:1px solid rgba(255,255,255,0.18); background:rgba(255,255,255,0.06); color:var(--text); padding:10px 12px; border-radius:14px; cursor:pointer; font-weight:900; letter-spacing:0.2px; user-select:none; white-space:nowrap; }
+    .btn.primary{ background:linear-gradient(135deg, rgba(96,165,250,0.8), rgba(167,139,250,0.7)); border-color:rgba(255,255,255,0.22); }
     .btn:disabled{ opacity:0.55; cursor:not-allowed; }
-
-    .notice{
-      margin-top:10px;
-      padding:10px 12px;
-      border-radius:16px;
-      border:1px solid rgba(255,255,255,0.16);
-      background:rgba(255,255,255,0.05);
-      color:var(--muted);
-      line-height:1.5;
-      font-size:13px;
-    }
+    .notice{ margin-top:10px; padding:10px 12px; border-radius:16px; border:1px solid rgba(255,255,255,0.16); background:rgba(255,255,255,0.05); color:var(--muted); line-height:1.5; font-size:13px; }
     .notice.ok{ border-color:rgba(52,211,153,0.35); background:rgba(52,211,153,0.10); }
     .notice.warn{ border-color:rgba(251,191,36,0.45); background:rgba(251,191,36,0.10); }
     .notice.bad{ border-color:rgba(251,113,133,0.45); background:rgba(251,113,133,0.10); }
-
     .kpis{ display:grid; grid-template-columns:repeat(4, 1fr); gap:10px; margin-top:10px; }
     @media (max-width:980px){ .kpis{ grid-template-columns:repeat(2, 1fr); } }
     .kpi{ padding:12px; border-radius:16px; border:1px solid rgba(255,255,255,0.12); background:rgba(255,255,255,0.05); }
     .kpiLabel{ font-size:12px; color:var(--muted); margin:0 0 6px; }
     .kpiValue{ font-size:16px; font-weight:900; margin:0; }
     .kpiHint{ font-size:12px; color:var(--faint); margin-top:6px; line-height:1.45; }
-
     table{ width:100%; border-collapse:collapse; margin-top:10px; border-radius:14px; overflow:hidden; }
     th, td{ border-bottom:1px solid rgba(255,255,255,0.08); padding:10px; text-align:left; font-size:13px; }
     th{ background:rgba(255,255,255,0.06); font-weight:900; }
     tr:hover td{ background:rgba(255,255,255,0.03); }
     .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
-
-    .doneRow td{
-      color: rgba(255,255,255,0.48);
-      text-decoration: line-through;
-      text-decoration-thickness: 1px;
-      text-decoration-color: rgba(255,255,255,0.32);
-    }
-    .doneRow td:first-child,
-    .doneRow td:nth-child(2){
-      text-decoration: none;
-      color: rgba(255,255,255,0.60);
-    }
-
+    .doneRow td{ color: rgba(255,255,255,0.48); text-decoration: line-through; text-decoration-thickness: 1px; text-decoration-color: rgba(255,255,255,0.32); }
+    .doneRow td:first-child, .doneRow td:nth-child(2){ text-decoration: none; color: rgba(255,255,255,0.60); }
     .checkCell{ width:54px; }
     .checkWrap{ display:flex; align-items:center; justify-content:center; }
-    input[type="checkbox"]{
-      width:18px; height:18px;
-      accent-color: var(--accent);
-      cursor:pointer;
-    }
-
-    .tabsWrap{
-      display:none;
-      margin:10px 0 14px;
-      border:1px solid rgba(255,255,255,0.12);
-      background:rgba(255,255,255,0.05);
-      border-radius:999px;
-      overflow:hidden;
-    }
-    .tabBtn{
-      flex:1;
-      padding:10px 10px;
-      border:0;
-      background:transparent;
-      color:rgba(255,255,255,0.75);
-      font-weight:900;
-      cursor:pointer;
-    }
-    .tabBtn.active{
-      background:rgba(255,255,255,0.10);
-      color:rgba(255,255,255,0.95);
-    }
+    input[type="checkbox"]{ width:18px; height:18px; accent-color: var(--accent); cursor:pointer; }
+    .tabsWrap{ display:none; margin:10px 0 14px; border:1px solid rgba(255,255,255,0.12); background:rgba(255,255,255,0.05); border-radius:999px; overflow:hidden; }
+    .tabBtn{ flex:1; padding:10px 10px; border:0; background:transparent; color:rgba(255,255,255,0.75); font-weight:900; cursor:pointer; }
+    .tabBtn.active{ background:rgba(255,255,255,0.10); color:rgba(255,255,255,0.95); }
     @media (max-width:980px){ .tabsWrap{ display:flex; } }
-
     .mobileOnly{ display:none; }
     .desktopOnly{ display:block; }
-    @media (max-width:980px){
-      .desktopOnly{ display:none; }
-      .mobileOnly{ display:block; }
-    }
-
-    .bottomBar{
-      display:none;
-      position:fixed;
-      left:0; right:0; bottom:0;
-      padding:10px 12px;
-      background:rgba(10,14,24,0.72);
-      border-top:1px solid rgba(255,255,255,0.10);
-      backdrop-filter: blur(10px);
-      z-index:999;
-    }
-    .bottomBarInner{
-      max-width:1160px;
-      margin:0 auto;
-      display:flex;
-      gap:10px;
-      align-items:center;
-    }
+    @media (max-width:980px){ .desktopOnly{ display:none; } .mobileOnly{ display:block; } }
+    .bottomBar{ display:none; position:fixed; left:0; right:0; bottom:0; padding:10px 12px; background:rgba(10,14,24,0.72); border-top:1px solid rgba(255,255,255,0.10); backdrop-filter: blur(10px); z-index:999; }
+    .bottomBarInner{ max-width:1160px; margin:0 auto; display:flex; gap:10px; align-items:center; }
     .bottomBarInner .btn{ flex:1; }
     @media (max-width:640px){ .bottomBar{ display:block; } }
   </style>
@@ -262,1054 +113,590 @@
   <div id="root"></div>
 
   <script type="text/babel">
-    const rootEl = document.getElementById("root");
-
-    function showFatal(err){
-      if (!rootEl) return;
-      rootEl.innerHTML = `
-        <div style="padding:18px;font-family:system-ui;color:#fff">
-          <div style="font-weight:900;font-size:16px;margin-bottom:8px">App crashed</div>
-          <div style="opacity:.8;margin-bottom:8px">เปิด DevTools Console จะเห็นรายละเอียดเพิ่ม</div>
-          <pre style="white-space:pre-wrap;background:rgba(255,255,255,0.06);padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,0.14)">${String(err && err.stack ? err.stack : err)}</pre>
-        </div>
-      `;
-    }
-
-    function waitForReact(timeoutMs=9000){
-      return new Promise((resolve, reject)=>{
-        const start = performance.now();
-        const tick = () => {
-          if (window.React && window.ReactDOM) return resolve();
-          if (performance.now() - start > timeoutMs) return reject(new Error("React/ReactDOM not ready (CDN blocked?)"));
-          requestAnimationFrame(tick);
-        };
-        tick();
-      });
-    }
-
-    (async ()=>{
-      try{
-        await waitForReact();
-
-        const { useMemo, useState, useEffect } = window.React;
-
-        // ===== App Version =====
-        const APP_VERSION = "v2026.01.28-01";
-        console.log(`[Badminton Scheduler] running ${APP_VERSION}`);
-
-        // ===== Names & special rules =====
-        const JIEB = "พี่เจี๊ยบ";
-        const MAY  = "พี่เมย์";
-        const REST_ONE_NAMES = new Set([JIEB, MAY]);
-        const MATCH1_EXCLUDE = new Set([JIEB, MAY]);
-
-        // Base maxConsecutive (เดิม)
-        function autoBaseMaxConsecutive(n){
-          if (n === 5) return 4;
-          if (n === 6) return 3;
-          if (n >= 7) return 2;
-          return 2;
-        }
-
-        // ----- utilities -----
-        function combPairs(players){
-          const pairs = [];
-          for (let i=0; i<players.length; i++){
-            for (let j=i+1; j<players.length; j++) pairs.push([players[i], players[j]]);
-          }
-          return pairs;
-        }
-        function pairKey(a,b){ return a < b ? `${a}__${b}` : `${b}__${a}`; }
-        function shuffle(arr){
-          const a = arr.slice();
-          for (let i=a.length-1; i>0; i--){
-            const j = Math.floor(Math.random()*(i+1));
-            [a[i], a[j]] = [a[j], a[i]];
-          }
-          return a;
-        }
-        function formatTeam(t){ return `${t[0]} + ${t[1]}`; }
-        function playersOfMatch(m){ return new Set([m.t1[0], m.t1[1], m.t2[0], m.t2[1]]); }
-        function toCSV(matches){
-          const rows = [["Match#", "Team A", "Team B"].join(",")];
-          matches.forEach((m, idx)=> rows.push([idx+1, `"${formatTeam(m.t1)}"`, `"${formatTeam(m.t2)}"`].join(",")));
-          return rows.join("\n");
-        }
-        function downloadText(filename, text){
-          const blob = new Blob([text], { type:"text/plain;charset=utf-8" });
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement("a");
-          a.href = url; a.download = filename;
-          document.body.appendChild(a); a.click(); a.remove();
-          URL.revokeObjectURL(url);
-        }
-        function cloneMap(m){
-          const n = new Map();
-          for (const [k,v] of m.entries()) n.set(k,v);
-          return n;
-        }
-        function calcRange(playedMap, players){
-          let min = Infinity, max = -Infinity;
-          for (const p of players){
-            const v = playedMap.get(p) || 0;
-            min = Math.min(min, v);
-            max = Math.max(max, v);
-          }
-          const minPlayed = (min===Infinity?0:min);
-          const maxPlayed = (max===-Infinity?0:max);
-          return { minPlayed, maxPlayed, range: maxPlayed - minPlayed };
-        }
-        function parseNamesList(text){
-          const raw = (text || "").split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
-          const uniq = [];
-          const seen = new Set();
-          for (const n of raw){
-            if (!seen.has(n)) { uniq.push(n); seen.add(n); }
-          }
-          return uniq;
-        }
-
-        // ----- validations (for reporting) -----
-        function validateRules(players, matches, maxConsecutiveOthers, femaleSet){
-          const streak = new Map(players.map(p=>[p,0]));
-          let prevPlayers = new Set();
-          const violations = [];
-
-          for (let i=0; i<matches.length; i++){
-            const m = matches[i];
-            const curPlayers = playersOfMatch(m);
-
-            // Match#1 exclude JIEB/MAY
-            if (i === 0){
-              for (const name of MATCH1_EXCLUDE){
-                if (players.includes(name) && curPlayers.has(name)){
-                  violations.push({ matchIndex:1, type:"match1_exclude", player:name });
-                }
-              }
-            }
-
-            // strict rest-one for JIEB/MAY
-            if (prevPlayers.has(JIEB) && curPlayers.has(JIEB)) violations.push({ matchIndex:i+1, type:"special_rest_one", player:JIEB });
-            if (prevPlayers.has(MAY)  && curPlayers.has(MAY))  violations.push({ matchIndex:i+1, type:"special_rest_one", player:MAY });
-
-            // no female-female within a team
-            if (femaleSet){
-              const [a,b] = m.t1;
-              const [c,d] = m.t2;
-              if (femaleSet.has(a) && femaleSet.has(b)) violations.push({ matchIndex:i+1, type:"female_pair", team:"A", players:[a,b] });
-              if (femaleSet.has(c) && femaleSet.has(d)) violations.push({ matchIndex:i+1, type:"female_pair", team:"B", players:[c,d] });
-            }
-
-            // others maxConsecutive
-            for (const p of players){
-              if (REST_ONE_NAMES.has(p)) continue;
-
-              if (curPlayers.has(p)){
-                const next = prevPlayers.has(p) ? (streak.get(p)+1) : 1;
-                streak.set(p, next);
-                if (next > maxConsecutiveOthers) violations.push({ matchIndex:i+1, type:"maxConsecutive", player:p, streak:next });
-              } else streak.set(p, 0);
-            }
-
-            prevPlayers = curPlayers;
-          }
-
-          return violations;
-        }
-
-        function calcRest(players, matches){
-          const rested = new Map(players.map(p=>[p,0]));
-          for (const m of matches){
-            const inMatch = playersOfMatch(m);
-            for (const p of players) if (!inMatch.has(p)) rested.set(p, rested.get(p)+1);
-          }
-          return rested;
-        }
-
-        // ----- Scheduler (balance-first + continue) -----
-        function buildScheduleBalanceFirst(players, opts, initial){
-          const {
-            timeBudgetMs = 1600,
-            maxRestarts = 1200,
-            maxStepsHardCap = 20000,
-            maxMatches = 60,
-            candidateSamplesPerStep = 280,
-            maxConsecutiveOthers = 2,
-            femaleSet = new Set(),
-          } = opts || {};
-
-          const allPairs = combPairs(players);
-          const allKeys = allPairs.map(([a,b]) => pairKey(a,b));
-          const totalPairs = allKeys.length;
-
-          const initMatches = initial?.matches ? initial.matches.slice() : [];
-          const initCovered = initial?.coveredPairs ? new Set(initial.coveredPairs) : new Set();
-          const initPlayed  = initial?.played ? cloneMap(initial.played) : new Map(players.map(p => [p,0]));
-          const initStreak  = initial?.streak ? cloneMap(initial.streak) : new Map(players.map(p => [p,0]));
-          const initPrevPlayers = initial?.prevPlayers ? new Set(initial.prevPlayers) : new Set();
-
-          const start = performance.now();
-          let best = null;
-
-          function evaluate(matches, coveredPairs, played){
-            const { minPlayed, maxPlayed, range } = calcRange(played, players);
-            const score = (-1000000 * range) + (2000 * coveredPairs.size) + (1 * matches.length);
-            return { score, minPlayed, maxPlayed, range };
-          }
-
-          function tryOnce(){
-            const matches = initMatches.slice();
-            const covered = new Set(initCovered);
-            const played = cloneMap(initPlayed);
-            const streak = cloneMap(initStreak);
-            let prevPlayers = new Set(initPrevPlayers);
-
-            const remaining = new Set(allKeys);
-            for (const k of covered) remaining.delete(k);
-
-            const candidatePairs = shuffle(allPairs);
-
-            function violatesMatch1(mPlayers, nextMatchIndex){
-              if (nextMatchIndex !== 1) return false;
-              if (players.includes(JIEB) && mPlayers.has(JIEB)) return true;
-              if (players.includes(MAY)  && mPlayers.has(MAY))  return true;
-              return false;
-            }
-
-            function violatesFemalePair(a,b,c,d){
-              const ff1 = femaleSet.has(a) && femaleSet.has(b);
-              const ff2 = femaleSet.has(c) && femaleSet.has(d);
-              return ff1 || ff2;
-            }
-
-            function wouldViolateStreak(mPlayers){
-              // JIEB/MAY must rest 1 match
-              if (prevPlayers.has(JIEB) && mPlayers.has(JIEB)) return true;
-              if (prevPlayers.has(MAY)  && mPlayers.has(MAY))  return true;
-
-              // others maxConsecutive
-              for (const p of mPlayers){
-                if (REST_ONE_NAMES.has(p)) continue;
-                const next = prevPlayers.has(p) ? ((streak.get(p)||0)+1) : 1;
-                if (next > maxConsecutiveOthers) return true;
-              }
-              return false;
-            }
-
-            function applyMatch(mPlayers){
-              for (const p of players){
-                if (mPlayers.has(p)){
-                  played.set(p, (played.get(p)||0) + 1);
-
-                  // keep streak map for others; specials are enforced by prevPlayers check
-                  if (REST_ONE_NAMES.has(p)) {
-                    streak.set(p, 0);
-                  } else {
-                    const next = prevPlayers.has(p) ? ((streak.get(p)||0)+1) : 1;
-                    streak.set(p, next);
-                  }
-                } else {
-                  streak.set(p, 0);
-                }
-              }
-              prevPlayers = mPlayers;
-            }
-
-            function pickNextMatch(nextMatchIndex){
-              function tryPick(preferNew){
-                let bestCand = null;
-
-                for (let s=0; s<candidateSamplesPerStep; s++){
-                  let p1 = null;
-                  for (let t=0; t<35; t++){
-                    const [a,b] = candidatePairs[Math.floor(Math.random()*candidatePairs.length)];
-                    const k1 = pairKey(a,b);
-                    if (preferNew && remaining.size > 0 && !remaining.has(k1)) continue;
-                    p1 = [a,b,k1];
-                    break;
-                  }
-                  if (!p1) continue;
-                  const [a,b,k1] = p1;
-
-                  let p2 = null;
-                  for (let t=0; t<50; t++){
-                    const [c,d] = candidatePairs[Math.floor(Math.random()*candidatePairs.length)];
-                    const k2 = pairKey(c,d);
-                    if (preferNew && remaining.size > 0 && !remaining.has(k2)) continue;
-                    if (a===c || a===d || b===c || b===d) continue;
-                    p2 = [c,d,k2];
-                    break;
-                  }
-                  if (!p2) continue;
-
-                  const [c,d,k2] = p2;
-
-                  if (violatesFemalePair(a,b,c,d)) continue;
-
-                  const mPlayers = new Set([a,b,c,d]);
-                  if (violatesMatch1(mPlayers, nextMatchIndex)) continue;
-                  if (wouldViolateStreak(mPlayers)) continue;
-
-                  const played2 = cloneMap(played);
-                  for (const p of mPlayers) played2.set(p, (played2.get(p)||0)+1);
-                  const { range } = calcRange(played2, players);
-
-                  const newPairs =
-                    (remaining.has(k1) ? 1 : 0) +
-                    (remaining.has(k2) ? 1 : 0) +
-                    ((remaining.size === 0 && !covered.has(k1)) ? 1 : 0) +
-                    ((remaining.size === 0 && !covered.has(k2)) ? 1 : 0);
-
-                  const newWeight = preferNew ? 5000 : 200;
-                  const hScore = (-1000000 * range) + (newWeight * newPairs) + (10 * matches.length);
-
-                  if (!bestCand || hScore > bestCand.hScore){
-                    bestCand = { a,b,c,d,k1,k2,hScore };
-                  }
-                }
-
-                return bestCand;
-              }
-
-              const c1 = tryPick(true);
-              if (c1) return c1;
-              return tryPick(false);
-            }
-
-            let steps = 0;
-            while (steps < maxStepsHardCap && matches.length < maxMatches){
-              steps++;
-              const nextMatchIndex = matches.length + 1;
-              const cand = pickNextMatch(nextMatchIndex);
-              if (!cand) break;
-
-              const m = { t1:[cand.a, cand.b], t2:[cand.c, cand.d] };
-              matches.push(m);
-
-              covered.add(cand.k1);
-              covered.add(cand.k2);
-              remaining.delete(cand.k1);
-              remaining.delete(cand.k2);
-
-              applyMatch(playersOfMatch(m));
-            }
-
-            // hard reject if match#1 contains special
-            if (matches.length > 0){
-              const p0 = playersOfMatch(matches[0]);
-              if ((players.includes(JIEB) && p0.has(JIEB)) || (players.includes(MAY) && p0.has(MAY))) return null;
-            }
-
-            const evalRes = evaluate(matches, covered, played);
-            return { matches, coveredPairs:covered, played, streak, prevPlayers, ...evalRes };
-          }
-
-          let restarts = 0;
-          while (restarts < maxRestarts && (performance.now() - start) < timeBudgetMs){
-            const res = tryOnce();
-            if (!res) { restarts++; continue; }
-            if (!best) best = res;
-            else if (res.score > best.score) best = res;
-            else if (res.score === best.score){
-              if (res.coveredPairs.size > best.coveredPairs.size) best = res;
-              else if (res.coveredPairs.size === best.coveredPairs.size && res.matches.length > best.matches.length) best = res;
-            }
-            restarts++;
-          }
-
-          if (!best){
-            return {
-              matches: [],
-              coveredPairs: new Set(),
-              totalPairs,
-              coverageRate: 0,
-              played: new Map(players.map(p=>[p,0])),
-              minPlayed: 0,
-              maxPlayed: 0,
-              range: 0,
-              streak: new Map(players.map(p=>[p,0])),
-              prevPlayers: new Set(),
-            };
-          }
-
-          const coverageRate = totalPairs ? (best.coveredPairs.size / totalPairs) : 0;
-          return {
-            matches: best.matches,
-            coveredPairs: best.coveredPairs,
-            totalPairs,
-            coverageRate,
-            played: best.played,
-            minPlayed: best.minPlayed,
-            maxPlayed: best.maxPlayed,
-            range: best.range,
-            streak: best.streak,
-            prevPlayers: best.prevPlayers,
-          };
-        }
-
-        function dotType({specialFirstBad, violations, coverageOk, balanceOk}){
-          if (specialFirstBad || violations > 0) return "bad";
-          if (coverageOk && balanceOk) return "ok";
-          return "warn";
-        }
-
-        // ----- Stable Cards -----
-        const SettingsCard = window.React.memo(function SettingsCard(props){
-          const {
-            namesText, setNamesText,
-            players,
-            femaleFlags, setFemaleFlags,
-            baseMaxConsecutive,
-            othersMaxConsecutive,
-            hasSpecial,
-            maxMatches, setMaxMatches,
-            timeBudgetMs, setTimeBudgetMs,
-            addMatches, setAddMatches,
-            working, playersCount,
-            result, onGenerateFresh, onContinue, onClear,
-          } = props;
-
-          const [genderFilter, setGenderFilter] = useState("");
-
-          const shownPlayers = useMemo(() => {
-            const q = genderFilter.trim();
-            if (!q) return players;
-            return players.filter(p => p.includes(q));
-          }, [players, genderFilter]);
-
-          const femaleCount = useMemo(() => {
-            let c = 0;
-            for (const p of players) if (femaleFlags[p]) c++;
-            return c;
-          }, [players, femaleFlags]);
-
-          function toggleFemale(name){
-            setFemaleFlags(prev => ({ ...prev, [name]: !prev[name] }));
-          }
-          function clearAllFemale(){
-            const next = {};
-            for (const p of players) next[p] = false;
-            setFemaleFlags(next);
-          }
-          function setAllFemale(){
-            const next = {};
-            for (const p of players) next[p] = true;
-            setFemaleFlags(next);
-          }
-
-          return (
-            <div className="card">
-              <div className="cardHeader">
-                <h3 className="cardTitle">Settings</h3>
-                <span className="badge">Input & Control</span>
-              </div>
-
-              <label>รายชื่อผู้เล่น (1 บรรทัดต่อ 1 คน)</label>
-              <textarea
-                value={namesText}
-                onChange={e=>setNamesText(e.target.value)}
-                autoCorrect="off"
-                autoCapitalize="none"
-                spellCheck={false}
-              />
-              <div className="help">ระบบจะตัดชื่อซ้ำอัตโนมัติ</div>
-
-              <label>เลือกเพศ (ติ๊ก = ผู้หญิง) — ใช้กับกติกา “ห้ามผู้หญิงคู่กันในทีมเดียวกัน”</label>
-              <div className="inlineField" style={{alignItems:"center"}}>
-                <div style={{flex:1, minWidth:220}}>
-                  <input
-                    value={genderFilter}
-                    onChange={(e)=>setGenderFilter(e.target.value)}
-                    placeholder="ค้นหาชื่อ..."
-                  />
-                </div>
-                <button className="btn" type="button" onClick={clearAllFemale} disabled={players.length===0}>ล้างทั้งหมด</button>
-                <button className="btn" type="button" onClick={setAllFemale} disabled={players.length===0}>เลือกทั้งหมดเป็นหญิง</button>
-                <span className="badge">หญิง: {femaleCount}/{players.length}</span>
-              </div>
-
-              <div style={{
-                marginTop:10,
-                border:"1px solid rgba(255,255,255,0.14)",
-                borderRadius:14,
-                background:"rgba(255,255,255,0.04)",
-                maxHeight:220,
-                overflow:"auto",
-                padding:10
-              }}>
-                {shownPlayers.length === 0 ? (
-                  <div className="help">ไม่พบชื่อที่ค้นหา</div>
-                ) : shownPlayers.map(name => (
-                  <div key={name} style={{
-                    display:"flex",
-                    alignItems:"center",
-                    justifyContent:"space-between",
-                    padding:"8px 6px",
-                    borderBottom:"1px solid rgba(255,255,255,0.06)"
-                  }}>
-                    <div style={{display:"flex", gap:10, alignItems:"center"}}>
-                      <input
-                        type="checkbox"
-                        checked={!!femaleFlags[name]}
-                        onChange={()=>toggleFemale(name)}
-                      />
-                      <span>{name}</span>
-                    </div>
-                    <span className="badge" style={{opacity:0.9}}>
-                      {femaleFlags[name] ? "หญิง" : "ชาย/ไม่ระบุ"}
-                    </span>
-                  </div>
-                ))}
-              </div>
-
-              <div className="help">
-                ความหมาย: “ไม่ให้ผู้หญิงคู่กัน” = ในทีมเดียวกันห้าม หญิง-หญิง (ข้ามทีมไม่เกี่ยว)
-              </div>
-
-              <div className="inlineField">
-                <div>
-                  <label>Base maxConsecutive (auto)</label>
-                  <input value={`${baseMaxConsecutive} (auto)`} readOnly />
-                  <div className="help">กติกาเดิม: 5→4, 6→3, 7+→2</div>
-                </div>
-
-                <div>
-                  <label>Others maxConsecutive</label>
-                  <input value={`${othersMaxConsecutive}`} readOnly />
-                  <div className="help">
-                    {hasSpecial
-                      ? `เปิด +1 เพราะพบ ${JIEB} หรือ ${MAY} ในรายชื่อ`
-                      : `ไม่ +1 เพราะไม่พบ ${JIEB}/${MAY} ในรายชื่อ`
-                    }
-                  </div>
-                </div>
-
-                <div>
-                  <label>Max matches (default = 18)</label>
-                  <input type="number" min="1" max="500" value={maxMatches} onChange={e=>setMaxMatches(+e.target.value || 18)} />
-                </div>
-
-                <div>
-                  <label>Time budget (ms)</label>
-                  <input type="number" min="200" max="5000" value={timeBudgetMs} onChange={e=>setTimeBudgetMs(+e.target.value || 2500)} />
-                </div>
-
-                <div>
-                  <label>Add matches</label>
-                  <input type="number" min="1" max="200" value={addMatches} onChange={e=>setAddMatches(+e.target.value || 10)} />
-                </div>
-              </div>
-
-              <div className="buttons desktopOnly">
-                <button className="btn primary" onClick={onGenerateFresh} disabled={working || playersCount < 4}>
-                  {working ? "Working..." : "Generate (Fresh)"}
-                </button>
-
-                <button className="btn primary" onClick={onContinue} disabled={working || !result || (result && result.matches.length>=maxMatches)}>
-                  {working ? "Continuing..." : `Continue (+${addMatches})`}
-                </button>
-
-                <button className="btn" onClick={onClear} disabled={working}>
-                  Clear
-                </button>
-              </div>
-
-              {playersCount < 4 && <div className="notice warn">ต้องมีผู้เล่นอย่างน้อย 4 คน</div>}
-              {result && result.matches.length>=maxMatches && <div className="notice warn">ตารางถึงเพดาน Max matches แล้ว — เพิ่ม Max matches ถ้าต้องการเล่นต่อ</div>}
-
-              <div className="notice">
-                เงื่อนไข:
-                <br/>• {JIEB}/{MAY} เว้นแมตช์รายคน (ห้ามลงติดกัน)
-                <br/>• คนอื่น maxConsecutive = base{hasSpecial ? " + 1 (เปิด)" : " (ไม่ +1)"}
-                <br/>• ห้าม {JIEB}/{MAY} อยู่ Match #1
-                <br/>• ห้ามผู้หญิงคู่กัน “ในทีมเดียวกัน”
-                <br/>• Version: {APP_VERSION}
-              </div>
-            </div>
-          );
-        });
-
-        const ResultsCard = window.React.memo(function ResultsCard(props){
-          const { renderKPIs, renderNotices } = props;
-          return (
-            <div className="card">
-              <div className="cardHeader">
-                <h3 className="cardTitle">Results Overview</h3>
-                <span className="badge">KPIs</span>
-              </div>
-              {renderKPIs()}
-              {renderNotices()}
-            </div>
-          );
-        });
-
-        // ----- App -----
-        function App(){
-          const [namesText, setNamesText] = useState("");
-          const players = useMemo(()=>parseNamesList(namesText), [namesText]);
-
-          // female tick UI
-          const [femaleFlags, setFemaleFlags] = useState({});
-          useEffect(() => {
-            setFemaleFlags(prev => {
-              const next = {};
-              for (const p of players) next[p] = !!prev[p];
-              return next;
-            });
-          }, [players]);
-
-          const femaleSet = useMemo(() => {
-            const s = new Set();
-            for (const p of players) if (femaleFlags[p]) s.add(p);
-            return s;
-          }, [players, femaleFlags]);
-
-          const baseMaxConsecutive = useMemo(() => autoBaseMaxConsecutive(players.length), [players.length]);
-
-          // ✅ NEW RULE: +1 only if JIEB or MAY exists in players
-          const hasSpecial = useMemo(() => players.includes(JIEB) || players.includes(MAY), [players]);
-          const othersMaxConsecutive = useMemo(
-            () => (hasSpecial ? (baseMaxConsecutive + 1) : baseMaxConsecutive),
-            [hasSpecial, baseMaxConsecutive]
-          );
-
-          const [timeBudgetMs, setTimeBudgetMs] = useState(2500);
-          const [maxMatches, setMaxMatches] = useState(18); // ✅ default 18
-          const [addMatches, setAddMatches] = useState(10);
-
-          const [working, setWorking] = useState(false);
-          const [result, setResult] = useState(null);
-          const [mobileTab, setMobileTab] = useState("summary");
-          const [doneMatches, setDoneMatches] = useState({});
-
-          function isNarrow(){
-            return window.matchMedia && window.matchMedia("(max-width: 980px)").matches;
-          }
-
-          function computeAndSet(res){
-            if (!res || !Array.isArray(res.matches)) {
-              setResult({
-                matches: [],
-                coveredPairs: new Set(),
-                totalPairs: 0,
-                coverageRate: 0,
-                played: new Map(players.map(p=>[p,0])),
-                minPlayed: 0,
-                maxPlayed: 0,
-                range: 0,
-                streak: new Map(players.map(p=>[p,0])),
-                prevPlayers: new Set(),
-                violations: [],
-                rested: new Map(players.map(p=>[p,0])),
-                specialFirstBad: false,
-                baseMaxConsecutive,
-                othersMaxConsecutive,
-                hasSpecial,
-                femaleCount: femaleSet.size,
-              });
-              setDoneMatches({});
-              return;
-            }
-
-            const violations = validateRules(players, res.matches, othersMaxConsecutive, femaleSet);
-            const rested = calcRest(players, res.matches);
-            const specialFirstBad = violations.some(v => v.type === "match1_exclude");
-
-            setResult({
-              ...res,
-              violations,
-              rested,
-              specialFirstBad,
-              baseMaxConsecutive,
-              othersMaxConsecutive,
-              hasSpecial,
-              femaleCount: femaleSet.size
-            });
-          }
-
-          function onGenerateFresh(){
-            setWorking(true);
-            setTimeout(() => {
-              try{
-                const res = buildScheduleBalanceFirst(players, {
-                  timeBudgetMs,
-                  maxMatches,
-                  candidateSamplesPerStep: 280,
-                  maxConsecutiveOthers: othersMaxConsecutive,
-                  femaleSet,
-                }, null);
-
-                computeAndSet(res);
-                setDoneMatches({});
-                if (isNarrow()) setMobileTab("schedule");
-              } finally {
-                setWorking(false);
-              }
-            }, 0);
-          }
-
-          function onContinue(){
-            if (!result) return;
-
-            setWorking(true);
-            setTimeout(() => {
-              try{
-                const currentTotal = result.matches.length;
-                const targetTotal = Math.min(maxMatches, currentTotal + Math.max(0, addMatches));
-
-                const res = buildScheduleBalanceFirst(players, {
-                  timeBudgetMs,
-                  maxMatches: targetTotal,
-                  candidateSamplesPerStep: 280,
-                  maxConsecutiveOthers: othersMaxConsecutive,
-                  femaleSet,
-                }, {
-                  matches: result.matches,
-                  coveredPairs: result.coveredPairs,
-                  played: result.played,
-                  streak: result.streak,
-                  prevPlayers: result.prevPlayers,
-                });
-
-                computeAndSet(res);
-                if (isNarrow()) setMobileTab("schedule");
-              } finally {
-                setWorking(false);
-              }
-            }, 0);
-          }
-
-          // prune done flags if schedule shrinks
-          useEffect(() => {
-            if (!result) return;
-            const len = result.matches.length;
-            setDoneMatches(prev => {
-              const next = {};
-              for (const k of Object.keys(prev)){
-                const idx = Number(k);
-                if (idx >= 1 && idx <= len) next[idx] = true;
-              }
-              return next;
-            });
-          }, [result ? result.matches.length : 0]);
-
-          function toggleDone(matchIndex1Based){
-            setDoneMatches(prev => {
-              const next = { ...prev };
-              if (next[matchIndex1Based]) delete next[matchIndex1Based];
-              else next[matchIndex1Based] = true;
-              return next;
-            });
-          }
-
-          const coveragePct = result ? (result.coverageRate * 100) : 0;
-          const progressWidth = `${Math.max(0, Math.min(100, coveragePct))}%`;
-
-          const coverageOk = !!(result && result.coveredPairs.size === result.totalPairs && result.totalPairs > 0);
-          const balanceOk = !!(result && result.range === 0 && result.matches.length > 0);
-          const violationsCount = result ? result.violations.length : 0;
-          const specialFirstBad = result ? result.specialFirstBad : false;
-
-          const status = dotType({ specialFirstBad, violations: violationsCount, coverageOk, balanceOk });
-
-          const statusLabel = !result ? "Ready"
-            : (specialFirstBad ? `Rule break: ${JIEB}/${MAY} in Match#1`
-              : (violationsCount>0 ? "Violations"
-                : (coverageOk && balanceOk ? "Optimal balance" : "Best found")));
-
-          const statusHint = !result
-            ? `ver=${APP_VERSION} | n=${players.length} | base=${baseMaxConsecutive} | others=${othersMaxConsecutive} | +1=${hasSpecial ? "ON" : "OFF"} | female=${femaleSet.size}`
-            : `ver=${APP_VERSION} | n=${players.length} | base=${result.baseMaxConsecutive} | others=${result.othersMaxConsecutive} | +1=${result.hasSpecial ? "ON" : "OFF"} | female=${result.femaleCount} | range=${result.range} | coverage ${result.coveredPairs.size}/${result.totalPairs} | matches ${result.matches.length}`;
-
-          function renderKPIs(){
-            if (!result){
-              return (
-                <div className="kpis">
-                  <div className="kpi"><p className="kpiLabel">Players</p><p className="kpiValue">{players.length}</p><div className="kpiHint">ตั้งแต่ 4 คนขึ้นไป</div></div>
-                  <div className="kpi"><p className="kpiLabel">Female (ticked)</p><p className="kpiValue">{femaleSet.size}</p><div className="kpiHint">ติ๊ก = ผู้หญิง</div></div>
-                  <div className="kpi"><p className="kpiLabel">Others maxConsecutive</p><p className="kpiValue">{othersMaxConsecutive}</p><div className="kpiHint">+1 เฉพาะเมื่อมีพี่เจี๊ยบ/พี่เมย์</div></div>
-                  <div className="kpi"><p className="kpiLabel">Version</p><p className="kpiValue">{APP_VERSION}</p><div className="kpiHint">แสดงเวอร์ชันที่ใช้อยู่</div></div>
-                </div>
-              );
-            }
-
-            const doneCount = Object.keys(doneMatches).length;
-
-            return (
-              <div className="kpis">
-                <div className="kpi"><p className="kpiLabel">Matches</p><p className="kpiValue">{result.matches.length}</p><div className="kpiHint">Done {doneCount}</div></div>
-                <div className="kpi"><p className="kpiLabel">Coverage</p><p className="kpiValue">{coveragePct.toFixed(1)}%</p><div className="kpiHint">{result.coveredPairs.size}/{result.totalPairs} partner pairs</div></div>
-                <div className="kpi"><p className="kpiLabel">Balance (range)</p><p className="kpiValue">{result.range}</p><div className="kpiHint">max {result.maxPlayed} / min {result.minPlayed}</div></div>
-                <div className="kpi"><p className="kpiLabel">Rule breaks</p><p className="kpiValue">{violationsCount}</p><div className="kpiHint">rest-one + consecutive + match#1 + หญิง-หญิง</div></div>
-              </div>
-            );
-          }
-
-          function renderNotices(){
-            if (!result) return null;
-
-            const v = result.violations || [];
-            const notes = [];
-
-            const hasMatch1 = v.some(x => x.type === "match1_exclude");
-            notes.push(hasMatch1
-              ? { type:"bad", text:`ละเมิด Match#1: พบ ${JIEB}/${MAY} อยู่ใน Match #1` }
-              : { type:"ok", text:`ผ่าน Match#1: ${JIEB}/${MAY} ไม่ได้อยู่ใน Match #1` }
-            );
-
-            const hasFemalePair = v.some(x => x.type === "female_pair");
-            notes.push(hasFemalePair
-              ? { type:"bad", text:"ละเมิดกติกา: พบ “ผู้หญิงคู่กัน” ในทีมเดียวกัน" }
-              : { type:"ok", text:"ผ่านกติกา: ไม่พบผู้หญิงคู่กันในทีมเดียวกัน" }
-            );
-
-            const hasSpecialRest = v.some(x => x.type === "special_rest_one");
-            notes.push(hasSpecialRest
-              ? { type:"bad", text:`ละเมิด: ${JIEB}/${MAY} ลงติดกัน (ต้องเว้นแมตช์)` }
-              : { type:"ok", text:`ผ่าน: ${JIEB}/${MAY} เว้นแมตช์ถูกต้อง` }
-            );
-
-            const hasMaxConsec = v.some(x => x.type === "maxConsecutive");
-            notes.push(hasMaxConsec
-              ? { type:"bad", text:`ละเมิด: คนอื่นเล่นติดกันเกิน ${result.othersMaxConsecutive}` }
-              : { type:"ok", text:`ผ่าน: คนอื่นไม่เกิน maxConsecutive=${result.othersMaxConsecutive}` }
-            );
-
-            notes.push(coverageOk
-              ? { type:"ok", text:"ครอบคลุมคู่พาร์ทเนอร์ครบ" }
-              : { type:"warn", text:"ยังครอบคลุมคู่พาร์ทเนอร์ไม่ครบ: เพิ่ม Max matches หรือกด Continue" }
-            );
-
-            notes.push(balanceOk
-              ? { type:"ok", text:"Balance เท่ากันทั้งหมด (range = 0)" }
-              : { type:"warn", text:`Balance ยังไม่เท่ากัน (range = ${result.range})` }
-            );
-
-            return notes.map((n,i)=>(<div key={i} className={`notice ${n.type}`}>{n.text}</div>));
-          }
-
-          function renderPlayerTable(){
-            if (!result) return null;
-            return (
-              <div className="card">
-                <div className="cardHeader">
-                  <h3 className="cardTitle">Player workload</h3>
-                  <div className="badge">
-                    ver={APP_VERSION} | base={result.baseMaxConsecutive} | others={result.othersMaxConsecutive} | +1={result.hasSpecial ? "ON" : "OFF"} | range={result.range}
-                  </div>
-                </div>
-                <table>
-                  <thead><tr><th>Player</th><th>Played</th><th>Rested</th></tr></thead>
-                  <tbody>
-                    {players.map(p=>(
-                      <tr key={p}>
-                        <td>{p}{femaleSet.has(p) ? " (หญิง)" : ""}</td>
-                        <td className="mono">{result.played.get(p) || 0}</td>
-                        <td className="mono">{result.rested.get(p) || 0}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            );
-          }
-
-          function renderSchedule(){
-            if (!result) return (
-              <div className="card">
-                <div className="cardHeader">
-                  <h3 className="cardTitle">Schedule</h3>
-                  <span className="badge">Waiting</span>
-                </div>
-                <div className="help">กด Generate เพื่อสร้างตาราง</div>
-              </div>
-            );
-
-            return (
-              <div className="card">
-                <div className="cardHeader">
-                  <h3 className="cardTitle">Schedule</h3>
-                  <div>
-                    <button
-                      className="btn"
-                      onClick={() => downloadText(`schedule_${APP_VERSION}.csv`, toCSV(result.matches))}
-                      disabled={result.matches.length===0}
-                    >
-                      CSV
-                    </button>
-                    <button
-                      className="btn"
-                      onClick={() => downloadText(
-                        `schedule_${APP_VERSION}.json`,
-                        JSON.stringify({ version: APP_VERSION, matches: result.matches }, null, 2)
-                      )}
-                      disabled={result.matches.length===0}
-                    >
-                      JSON
-                    </button>
-                  </div>
-                </div>
-
-                <table>
-                  <thead>
-                    <tr>
-                      <th className="checkCell">Done</th>
-                      <th style={{width:84}}>Match</th>
-                      <th>Team A</th>
-                      <th>Team B</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {result.matches.map((m, idx)=>{
-                      const matchNo = idx+1;
-                      const isDone = !!doneMatches[matchNo];
-                      return (
-                        <tr key={idx} className={isDone ? "doneRow" : ""}>
-                          <td className="checkCell">
-                            <div className="checkWrap">
-                              <input
-                                type="checkbox"
-                                checked={isDone}
-                                onChange={() => toggleDone(matchNo)}
-                                aria-label={`Mark match ${matchNo} as done`}
-                              />
-                            </div>
-                          </td>
-                          <td className="mono">{matchNo}</td>
-                          <td>{formatTeam(m.t1)}</td>
-                          <td>{formatTeam(m.t2)}</td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-
-                <div className="help">
-                  ติ๊ก Done แล้วแถวนั้นจะขีดฆ่าและสีจางลง (สถานะอยู่ต่อแม้กด Continue) | Generate ใหม่จะรีเซ็ต Done ทั้งหมด
-                </div>
-              </div>
-            );
-          }
-
-          return (
-            <div className="container">
-              <div className="topbar">
-                <div>
-                  <h1 className="title">
-                    Badminton Doubles Scheduler
-                    <span className="badge">Responsive</span>
-                    <span className="badge">No-black-screen</span>
-                    <span className="badge">Gender Tick</span>
-                    <span className="badge mono">Version {APP_VERSION}</span>
-                  </h1>
-
-                  <div className="pill">
-                    <span className={`dot ${status}`}></span>
-                    <span><b>{statusLabel}</b> — {statusHint}</span>
-                  </div>
-
-                  <div className="progressWrap">
-                    <div className="progressBar" style={{width: result ? progressWidth : "0%"}}></div>
-                  </div>
-
-                  <p className="subtitle">
-                    PC: ซ้าย Settings/Results/Players ขวา Schedule | มือถือ: Tabs + ปุ่มล่าง | Schedule มี Done
-                  </p>
-                </div>
-                <div className="badge mono">Version {APP_VERSION} | n ≥ 4 | doubles</div>
-              </div>
-
-              <div className="tabsWrap">
-                <button className={`tabBtn ${mobileTab==="summary"?"active":""}`} onClick={()=>setMobileTab("summary")}>Summary</button>
-                <button className={`tabBtn ${mobileTab==="schedule"?"active":""}`} onClick={()=>setMobileTab("schedule")}>Schedule</button>
-                <button className={`tabBtn ${mobileTab==="players"?"active":""}`} onClick={()=>setMobileTab("players")}>Players</button>
-                <button className={`tabBtn ${mobileTab==="settings"?"active":""}`} onClick={()=>setMobileTab("settings")}>Settings</button>
-              </div>
-
-              <div className="grid desktopOnly" style={{gridTemplateColumns:"420px 1fr"}}>
-                <div style={{display:"flex", flexDirection:"column", gap:14}}>
-                  <SettingsCard
-                    namesText={namesText}
-                    setNamesText={setNamesText}
-                    players={players}
-                    femaleFlags={femaleFlags}
-                    setFemaleFlags={setFemaleFlags}
-                    baseMaxConsecutive={baseMaxConsecutive}
-                    othersMaxConsecutive={othersMaxConsecutive}
-                    hasSpecial={hasSpecial}
-                    maxMatches={maxMatches}
-                    setMaxMatches={setMaxMatches}
-                    timeBudgetMs={timeBudgetMs}
-                    setTimeBudgetMs={setTimeBudgetMs}
-                    addMatches={addMatches}
-                    setAddMatches={setAddMatches}
-                    working={working}
-                    playersCount={players.length}
-                    result={result}
-                    onGenerateFresh={onGenerateFresh}
-                    onContinue={onContinue}
-                    onClear={()=>{ setResult(null); setDoneMatches({}); }}
-                  />
-
-                  <ResultsCard renderKPIs={renderKPIs} renderNotices={renderNotices} />
-                  {renderPlayerTable()}
-                </div>
-                <div style={{display:"flex", flexDirection:"column", gap:14}}>
-                  {renderSchedule()}
-                </div>
-              </div>
-
-              <div className="mobileOnly" style={{display:"flex", flexDirection:"column", gap:14}}>
-                {mobileTab==="summary" && <ResultsCard renderKPIs={renderKPIs} renderNotices={renderNotices} />}
-                {mobileTab==="schedule" && renderSchedule()}
-                {mobileTab==="players" && renderPlayerTable()}
-                {mobileTab==="settings" && (
-                  <SettingsCard
-                    namesText={namesText}
-                    setNamesText={setNamesText}
-                    players={players}
-                    femaleFlags={femaleFlags}
-                    setFemaleFlags={setFemaleFlags}
-                    baseMaxConsecutive={baseMaxConsecutive}
-                    othersMaxConsecutive={othersMaxConsecutive}
-                    hasSpecial={hasSpecial}
-                    maxMatches={maxMatches}
-                    setMaxMatches={setMaxMatches}
-                    timeBudgetMs={timeBudgetMs}
-                    setTimeBudgetMs={setTimeBudgetMs}
-                    addMatches={addMatches}
-                    setAddMatches={setAddMatches}
-                    working={working}
-                    playersCount={players.length}
-                    result={result}
-                    onGenerateFresh={onGenerateFresh}
-                    onContinue={onContinue}
-                    onClear={()=>{ setResult(null); setDoneMatches({}); }}
-                  />
-                )}
-              </div>
-
-              <div className="bottomBar">
-                <div className="bottomBarInner">
-                  <button className="btn primary" onClick={onGenerateFresh} disabled={working || players.length < 4}>
-                    {working ? "Working..." : "Generate"}
-                  </button>
-                  <button className="btn primary" onClick={onContinue} disabled={working || !result || (result && result.matches.length>=maxMatches)}>
-                    {working ? "..." : "Continue"}
-                  </button>
-                </div>
-              </div>
-            </div>
-          );
-        }
-
-        if (!rootEl) throw new Error("Cannot find #root element");
-        window.ReactDOM.createRoot(rootEl).render(<App />);
-      }catch(e){
-        showFatal(e);
-        console.error(e);
+    try {
+      const { useMemo, useState, useEffect } = React;
+
+      // ===== App Version =====
+      const APP_VERSION = "v2026.01.28-Fix-Continue";
+      console.log(`[Badminton Scheduler] running ${APP_VERSION}`);
+
+      const JIEB = "พี่เจี๊ยบ";
+      const MAY  = "พี่เมย์";
+      const REST_ONE_NAMES = new Set([JIEB, MAY]);
+      const MATCH1_EXCLUDE = new Set([JIEB, MAY]);
+
+      function autoBaseMaxConsecutive(n){
+        if (n === 5) return 4;
+        if (n === 6) return 3;
+        if (n >= 7) return 2;
+        return 2;
       }
-    })();
+
+      function combPairs(players){
+        const pairs = [];
+        for (let i=0; i<players.length; i++){
+          for (let j=i+1; j<players.length; j++) pairs.push([players[i], players[j]]);
+        }
+        return pairs;
+      }
+      function pairKey(a,b){ return a < b ? `${a}__${b}` : `${b}__${a}`; }
+      function shuffle(arr){
+        const a = arr.slice();
+        for (let i=a.length-1; i>0; i--){
+          const j = Math.floor(Math.random()*(i+1));
+          [a[i], a[j]] = [a[j], a[i]];
+        }
+        return a;
+      }
+      function formatTeam(t){ return `${t[0]} + ${t[1]}`; }
+      function playersOfMatch(m){ return new Set([m.t1[0], m.t1[1], m.t2[0], m.t2[1]]); }
+      function toCSV(matches){
+        const rows = [["Match#", "Team A", "Team B"].join(",")];
+        matches.forEach((m, idx)=> rows.push([idx+1, `"${formatTeam(m.t1)}"`, `"${formatTeam(m.t2)}"`].join(",")));
+        return rows.join("\n");
+      }
+      function downloadText(filename, text){
+        const blob = new Blob([text], { type:"text/plain;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url; a.download = filename;
+        document.body.appendChild(a); a.click(); a.remove();
+        URL.revokeObjectURL(url);
+      }
+      function cloneMap(m){
+        const n = new Map();
+        for (const [k,v] of m.entries()) n.set(k,v);
+        return n;
+      }
+      function calcRange(playedMap, players){
+        let min = Infinity, max = -Infinity;
+        for (const p of players){
+          const v = playedMap.get(p) || 0;
+          min = Math.min(min, v);
+          max = Math.max(max, v);
+        }
+        const minPlayed = (min===Infinity?0:min);
+        const maxPlayed = (max===-Infinity?0:max);
+        return { minPlayed, maxPlayed, range: maxPlayed - minPlayed };
+      }
+      function parseNamesList(text){
+        const raw = (text || "").split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
+        const uniq = [];
+        const seen = new Set();
+        for (const n of raw){
+          if (!seen.has(n)) { uniq.push(n); seen.add(n); }
+        }
+        return uniq;
+      }
+
+      function validateRules(players, matches, maxConsecutiveOthers, femaleSet){
+        const streak = new Map(players.map(p=>[p,0]));
+        let prevPlayers = new Set();
+        const violations = [];
+
+        for (let i=0; i<matches.length; i++){
+          const m = matches[i];
+          const curPlayers = playersOfMatch(m);
+
+          if (i === 0){
+            for (const name of MATCH1_EXCLUDE){
+              if (players.includes(name) && curPlayers.has(name)){
+                violations.push({ matchIndex:1, type:"match1_exclude", player:name });
+              }
+            }
+          }
+
+          if (prevPlayers.has(JIEB) && curPlayers.has(JIEB)) violations.push({ matchIndex:i+1, type:"special_rest_one", player:JIEB });
+          if (prevPlayers.has(MAY)  && curPlayers.has(MAY))  violations.push({ matchIndex:i+1, type:"special_rest_one", player:MAY });
+
+          if (femaleSet){
+            const [a,b] = m.t1;
+            const [c,d] = m.t2;
+            if (femaleSet.has(a) && femaleSet.has(b)) violations.push({ matchIndex:i+1, type:"female_pair", team:"A", players:[a,b] });
+            if (femaleSet.has(c) && femaleSet.has(d)) violations.push({ matchIndex:i+1, type:"female_pair", team:"B", players:[c,d] });
+          }
+
+          for (const p of players){
+            if (REST_ONE_NAMES.has(p)) continue;
+            if (curPlayers.has(p)){
+              const next = prevPlayers.has(p) ? (streak.get(p)+1) : 1;
+              streak.set(p, next);
+              if (next > maxConsecutiveOthers) violations.push({ matchIndex:i+1, type:"maxConsecutive", player:p, streak:next });
+            } else streak.set(p, 0);
+          }
+          prevPlayers = curPlayers;
+        }
+        return violations;
+      }
+
+      function calcRest(players, matches){
+        const rested = new Map(players.map(p=>[p,0]));
+        for (const m of matches){
+          const inMatch = playersOfMatch(m);
+          for (const p of players) if (!inMatch.has(p)) rested.set(p, rested.get(p)+1);
+        }
+        return rested;
+      }
+
+      function buildScheduleBalanceFirst(players, opts, initial){
+        const {
+          timeBudgetMs = 1600, maxRestarts = 1200, maxStepsHardCap = 20000,
+          maxMatches = 60, candidateSamplesPerStep = 280,
+          maxConsecutiveOthers = 2, femaleSet = new Set(),
+        } = opts || {};
+
+        const allPairs = combPairs(players);
+        const allKeys = allPairs.map(([a,b]) => pairKey(a,b));
+        const totalPairs = allKeys.length;
+
+        const initMatches = initial?.matches ? initial.matches.slice() : [];
+        const initCovered = initial?.coveredPairs ? new Set(initial.coveredPairs) : new Set();
+        const initPlayed  = initial?.played ? cloneMap(initial.played) : new Map(players.map(p => [p,0]));
+        const initStreak  = initial?.streak ? cloneMap(initial.streak) : new Map(players.map(p => [p,0]));
+        const initPrevPlayers = initial?.prevPlayers ? new Set(initial.prevPlayers) : new Set();
+
+        const start = performance.now();
+        let best = null;
+
+        // ✅ แก้ไขสมการประเมินผล: บังคับให้น้ำหนัก "การสร้างแมตช์ให้เยอะที่สุด" เป็นอันดับ 1
+        function evaluate(matches, coveredPairs, played){
+          const { minPlayed, maxPlayed, range } = calcRange(played, players);
+          const score = (10000000 * matches.length) + (1000 * coveredPairs.size) - (10 * range);
+          return { score, minPlayed, maxPlayed, range };
+        }
+
+        function tryOnce(){
+          const matches = initMatches.slice();
+          const covered = new Set(initCovered);
+          const played = cloneMap(initPlayed);
+          const streak = cloneMap(initStreak);
+          let prevPlayers = new Set(initPrevPlayers);
+
+          const remaining = new Set(allKeys);
+          for (const k of covered) remaining.delete(k);
+          const candidatePairs = shuffle(allPairs);
+
+          function violatesMatch1(mPlayers, nextMatchIndex){
+            if (nextMatchIndex !== 1) return false;
+            if (players.includes(JIEB) && mPlayers.has(JIEB)) return true;
+            if (players.includes(MAY)  && mPlayers.has(MAY))  return true;
+            return false;
+          }
+
+          function violatesFemalePair(a,b,c,d){
+            const ff1 = femaleSet.has(a) && femaleSet.has(b);
+            const ff2 = femaleSet.has(c) && femaleSet.has(d);
+            return ff1 || ff2;
+          }
+
+          function wouldViolateStreak(mPlayers){
+            if (prevPlayers.has(JIEB) && mPlayers.has(JIEB)) return true;
+            if (prevPlayers.has(MAY)  && mPlayers.has(MAY))  return true;
+            for (const p of mPlayers){
+              if (REST_ONE_NAMES.has(p)) continue;
+              const next = prevPlayers.has(p) ? ((streak.get(p)||0)+1) : 1;
+              if (next > maxConsecutiveOthers) return true;
+            }
+            return false;
+          }
+
+          function applyMatch(mPlayers){
+            for (const p of players){
+              if (mPlayers.has(p)){
+                played.set(p, (played.get(p)||0) + 1);
+                if (REST_ONE_NAMES.has(p)) { streak.set(p, 0); } 
+                else { const next = prevPlayers.has(p) ? ((streak.get(p)||0)+1) : 1; streak.set(p, next); }
+              } else {
+                streak.set(p, 0);
+              }
+            }
+            prevPlayers = mPlayers;
+          }
+
+          function pickNextMatch(nextMatchIndex){
+            function tryPick(preferNew){
+              let bestCand = null;
+              for (let s=0; s<candidateSamplesPerStep; s++){
+                let p1 = null;
+                for (let t=0; t<35; t++){
+                  const [a,b] = candidatePairs[Math.floor(Math.random()*candidatePairs.length)];
+                  const k1 = pairKey(a,b);
+                  if (preferNew && remaining.size > 0 && !remaining.has(k1)) continue;
+                  p1 = [a,b,k1]; break;
+                }
+                if (!p1) continue;
+                const [a,b,k1] = p1;
+
+                let p2 = null;
+                for (let t=0; t<50; t++){
+                  const [c,d] = candidatePairs[Math.floor(Math.random()*candidatePairs.length)];
+                  const k2 = pairKey(c,d);
+                  if (preferNew && remaining.size > 0 && !remaining.has(k2)) continue;
+                  if (a===c || a===d || b===c || b===d) continue;
+                  p2 = [c,d,k2]; break;
+                }
+                if (!p2) continue;
+
+                const [c,d,k2] = p2;
+                if (violatesFemalePair(a,b,c,d)) continue;
+
+                const mPlayers = new Set([a,b,c,d]);
+                if (violatesMatch1(mPlayers, nextMatchIndex)) continue;
+                if (wouldViolateStreak(mPlayers)) continue;
+
+                const played2 = cloneMap(played);
+                for (const p of mPlayers) played2.set(p, (played2.get(p)||0)+1);
+                const { range } = calcRange(played2, players);
+
+                const newPairs = (remaining.has(k1) ? 1 : 0) + (remaining.has(k2) ? 1 : 0) +
+                  ((remaining.size === 0 && !covered.has(k1)) ? 1 : 0) + ((remaining.size === 0 && !covered.has(k2)) ? 1 : 0);
+
+                // ✅ แก้ไขการเลือกแมตช์ถัดไป: หาพาร์ทเนอร์ใหม่เป็นหลัก แล้วใช้ range เป็นตัวตัดสินกรณีสูสี
+                const newWeight = preferNew ? 20000 : 200;
+                const hScore = (newWeight * newPairs) - (1000 * range);
+
+                if (!bestCand || hScore > bestCand.hScore) bestCand = { a,b,c,d,k1,k2,hScore };
+              }
+              return bestCand;
+            }
+            const c1 = tryPick(true);
+            if (c1) return c1;
+            return tryPick(false);
+          }
+
+          let steps = 0;
+          while (steps < maxStepsHardCap && matches.length < maxMatches){
+            steps++;
+            const nextMatchIndex = matches.length + 1;
+            const cand = pickNextMatch(nextMatchIndex);
+            if (!cand) break;
+
+            const m = { t1:[cand.a, cand.b], t2:[cand.c, cand.d] };
+            matches.push(m);
+            covered.add(cand.k1); covered.add(cand.k2);
+            remaining.delete(cand.k1); remaining.delete(cand.k2);
+            applyMatch(playersOfMatch(m));
+          }
+
+          if (matches.length > 0){
+            const p0 = playersOfMatch(matches[0]);
+            if ((players.includes(JIEB) && p0.has(JIEB)) || (players.includes(MAY) && p0.has(MAY))) return null;
+          }
+
+          const evalRes = evaluate(matches, covered, played);
+          return { matches, coveredPairs:covered, played, streak, prevPlayers, ...evalRes };
+        }
+
+        let restarts = 0;
+        while (restarts < maxRestarts && (performance.now() - start) < timeBudgetMs){
+          const res = tryOnce();
+          if (!res) { restarts++; continue; }
+          if (!best) best = res;
+          else if (res.score > best.score) best = res;
+          else if (res.score === best.score){
+            if (res.coveredPairs.size > best.coveredPairs.size) best = res;
+            else if (res.coveredPairs.size === best.coveredPairs.size && res.matches.length > best.matches.length) best = res;
+          }
+          restarts++;
+        }
+
+        if (!best){
+          return { matches: [], coveredPairs: new Set(), totalPairs, coverageRate: 0,
+            played: new Map(players.map(p=>[p,0])), minPlayed: 0, maxPlayed: 0, range: 0,
+            streak: new Map(players.map(p=>[p,0])), prevPlayers: new Set() };
+        }
+
+        const coverageRate = totalPairs ? (best.coveredPairs.size / totalPairs) : 0;
+        return { matches: best.matches, coveredPairs: best.coveredPairs, totalPairs, coverageRate,
+          played: best.played, minPlayed: best.minPlayed, maxPlayed: best.maxPlayed, range: best.range,
+          streak: best.streak, prevPlayers: best.prevPlayers };
+      }
+
+      function dotType({specialFirstBad, violations, coverageOk, balanceOk}){
+        if (specialFirstBad || violations > 0) return "bad";
+        if (coverageOk && balanceOk) return "ok";
+        return "warn";
+      }
+
+      const SettingsCard = React.memo(function SettingsCard(props){
+        const {
+          namesText, setNamesText, players, femaleFlags, setFemaleFlags,
+          baseMaxConsecutive, othersMaxConsecutive, hasSpecial,
+          maxMatches, setMaxMatches, timeBudgetMs, setTimeBudgetMs, addMatches, setAddMatches,
+          working, playersCount, result, onGenerateFresh, onContinue, onClear
+        } = props;
+
+        const [genderFilter, setGenderFilter] = useState("");
+        const shownPlayers = useMemo(() => {
+          const q = genderFilter.trim();
+          if (!q) return players;
+          return players.filter(p => p.includes(q));
+        }, [players, genderFilter]);
+
+        const femaleCount = useMemo(() => {
+          let c = 0; for (const p of players) if (femaleFlags[p]) c++; return c;
+        }, [players, femaleFlags]);
+
+        function toggleFemale(name){ setFemaleFlags(prev => ({ ...prev, [name]: !prev[name] })); }
+        function clearAllFemale(){ const next = {}; for (const p of players) next[p] = false; setFemaleFlags(next); }
+        function setAllFemale(){ const next = {}; for (const p of players) next[p] = true; setFemaleFlags(next); }
+
+        return (
+          <div className="card">
+            <div className="cardHeader"><h3 className="cardTitle">Settings</h3><span className="badge">Input & Control</span></div>
+            <label>รายชื่อผู้เล่น (1 บรรทัดต่อ 1 คน)</label>
+            <textarea value={namesText} onChange={e=>setNamesText(e.target.value)} autoCorrect="off" autoCapitalize="none" spellCheck={false} />
+            
+            <label>เลือกเพศ (ติ๊ก = ผู้หญิง) — ใช้กับกติกา “ห้ามผู้หญิงคู่กันในทีมเดียวกัน”</label>
+            <div className="inlineField" style={{alignItems:"center"}}>
+              <div style={{flex:1, minWidth:220}}>
+                <input value={genderFilter} onChange={(e)=>setGenderFilter(e.target.value)} placeholder="ค้นหาชื่อ..." />
+              </div>
+              <button className="btn" type="button" onClick={clearAllFemale} disabled={players.length===0}>ล้างทั้งหมด</button>
+              <button className="btn" type="button" onClick={setAllFemale} disabled={players.length===0}>เลือกทั้งหมดหญิง</button>
+            </div>
+
+            <div style={{ marginTop:10, border:"1px solid rgba(255,255,255,0.14)", borderRadius:14, background:"rgba(255,255,255,0.04)", maxHeight:220, overflow:"auto", padding:10 }}>
+              {shownPlayers.length === 0 ? <div className="help">ไม่พบรายชื่อ</div> : shownPlayers.map(name => (
+                <div key={name} style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"8px 6px", borderBottom:"1px solid rgba(255,255,255,0.06)" }}>
+                  <div style={{display:"flex", gap:10, alignItems:"center"}}><input type="checkbox" checked={!!femaleFlags[name]} onChange={()=>toggleFemale(name)} /><span>{name}</span></div>
+                  <span className="badge">{femaleFlags[name] ? "หญิง" : "ชาย/ไม่ระบุ"}</span>
+                </div>
+              ))}
+            </div>
+
+            <div className="inlineField">
+              <div><label>Base maxConsecutive</label><input value={`${baseMaxConsecutive} (auto)`} readOnly /></div>
+              <div><label>Others maxConsecutive</label><input value={`${othersMaxConsecutive}`} readOnly /></div>
+              <div><label>Max matches</label><input type="number" min="1" max="500" value={maxMatches} onChange={e=>setMaxMatches(+e.target.value || 18)} /></div>
+              <div><label>Time budget (ms)</label><input type="number" min="200" max="5000" value={timeBudgetMs} onChange={e=>setTimeBudgetMs(+e.target.value || 2500)} /></div>
+              <div><label>Add matches</label><input type="number" min="1" max="200" value={addMatches} onChange={e=>setAddMatches(+e.target.value || 10)} /></div>
+            </div>
+
+            <div className="buttons desktopOnly">
+              <button className="btn primary" onClick={onGenerateFresh} disabled={working || playersCount < 4}>{working ? "Working..." : "Generate (Fresh)"}</button>
+              {/* ✅ เอาเงื่อนไข Disable ที่ห้ามกดต่อออก เพื่อให้บังคับบวกได้เสมอ */}
+              <button className="btn primary" onClick={onContinue} disabled={working || !result}>{working ? "Continuing..." : `Continue (+${addMatches})`}</button>
+              <button className="btn" onClick={onClear} disabled={working}>Clear</button>
+            </div>
+            {playersCount < 4 && <div className="notice warn">ต้องมีผู้เล่นอย่างน้อย 4 คน</div>}
+          </div>
+        );
+      });
+
+      const ResultsCard = React.memo(function ResultsCard({ renderKPIs, renderNotices }){
+        return ( <div className="card"><div className="cardHeader"><h3 className="cardTitle">Results Overview</h3><span className="badge">KPIs</span></div>{renderKPIs()}{renderNotices()}</div> );
+      });
+
+      function App(){
+        const [namesText, setNamesText] = useState("");
+        const players = useMemo(()=>parseNamesList(namesText), [namesText]);
+
+        const [femaleFlags, setFemaleFlags] = useState({});
+        useEffect(() => { setFemaleFlags(prev => { const next = {}; for (const p of players) next[p] = !!prev[p]; return next; }); }, [players]);
+
+        const femaleSet = useMemo(() => { const s = new Set(); for (const p of players) if (femaleFlags[p]) s.add(p); return s; }, [players, femaleFlags]);
+        const baseMaxConsecutive = useMemo(() => autoBaseMaxConsecutive(players.length), [players.length]);
+        const hasSpecial = useMemo(() => players.includes(JIEB) || players.includes(MAY), [players]);
+        const othersMaxConsecutive = useMemo(() => (hasSpecial ? (baseMaxConsecutive + 1) : baseMaxConsecutive), [hasSpecial, baseMaxConsecutive]);
+
+        const [timeBudgetMs, setTimeBudgetMs] = useState(2500);
+        const [maxMatches, setMaxMatches] = useState(18); 
+        const [addMatches, setAddMatches] = useState(20);
+        const [working, setWorking] = useState(false);
+        const [result, setResult] = useState(null);
+        const [mobileTab, setMobileTab] = useState("summary");
+        const [doneMatches, setDoneMatches] = useState({});
+
+        function isNarrow() { return window.matchMedia && window.matchMedia("(max-width: 980px)").matches; }
+
+        function computeAndSet(res){
+          if (!res || !Array.isArray(res.matches)) {
+            setResult({ matches: [], coveredPairs: new Set(), totalPairs: 0, coverageRate: 0, played: new Map(players.map(p=>[p,0])), minPlayed: 0, maxPlayed: 0, range: 0, streak: new Map(players.map(p=>[p,0])), prevPlayers: new Set(), violations: [], rested: new Map(players.map(p=>[p,0])), specialFirstBad: false, baseMaxConsecutive, othersMaxConsecutive, hasSpecial, femaleCount: femaleSet.size });
+            setDoneMatches({}); return;
+          }
+          const violations = validateRules(players, res.matches, othersMaxConsecutive, femaleSet);
+          const rested = calcRest(players, res.matches);
+          const specialFirstBad = violations.some(v => v.type === "match1_exclude");
+          setResult({ ...res, violations, rested, specialFirstBad, baseMaxConsecutive, othersMaxConsecutive, hasSpecial, femaleCount: femaleSet.size });
+        }
+
+        function onGenerateFresh(){
+          setWorking(true);
+          setTimeout(() => {
+            try{
+              const res = buildScheduleBalanceFirst(players, { timeBudgetMs, maxMatches, candidateSamplesPerStep: 280, maxConsecutiveOthers: othersMaxConsecutive, femaleSet }, null);
+              computeAndSet(res);
+              setDoneMatches({});
+              if (isNarrow()) setMobileTab("schedule");
+            } finally { setWorking(false); }
+          }, 50);
+        }
+
+        function onContinue(){
+          if (!result) return;
+          setWorking(true);
+          setTimeout(() => {
+            try{
+              const currentTotal = result.matches.length;
+              // ✅ แก้ไข: บังคับให้บวกเพิ่มจำนวนแมตช์ไปเลย โดยขยายเพดานให้อัตโนมัติ
+              const targetTotal = currentTotal + Math.max(1, addMatches);
+              setMaxMatches(targetTotal); 
+
+              const res = buildScheduleBalanceFirst(players, { timeBudgetMs, maxMatches: targetTotal, candidateSamplesPerStep: 280, maxConsecutiveOthers: othersMaxConsecutive, femaleSet }, { matches: result.matches, coveredPairs: result.coveredPairs, played: result.played, streak: result.streak, prevPlayers: result.prevPlayers });
+              computeAndSet(res);
+              if (isNarrow()) setMobileTab("schedule");
+            } finally { setWorking(false); }
+          }, 50);
+        }
+
+        useEffect(() => {
+          if (!result) return;
+          const len = result.matches.length;
+          setDoneMatches(prev => {
+            const next = {};
+            for (const k of Object.keys(prev)){ const idx = Number(k); if (idx >= 1 && idx <= len) next[idx] = true; }
+            return next;
+          });
+        }, [result ? result.matches.length : 0]);
+
+        function toggleDone(matchIndex1Based){
+          setDoneMatches(prev => {
+            const next = { ...prev };
+            if (next[matchIndex1Based]) delete next[matchIndex1Based]; else next[matchIndex1Based] = true;
+            return next;
+          });
+        }
+
+        const coveragePct = result ? (result.coverageRate * 100) : 0;
+        const progressWidth = `${Math.max(0, Math.min(100, coveragePct))}%`;
+        const coverageOk = !!(result && result.coveredPairs.size === result.totalPairs && result.totalPairs > 0);
+        const balanceOk = !!(result && result.range === 0 && result.matches.length > 0);
+        const violationsCount = result ? result.violations.length : 0;
+        const specialFirstBad = result ? result.specialFirstBad : false;
+        const status = dotType({ specialFirstBad, violations: violationsCount, coverageOk, balanceOk });
+        const statusLabel = !result ? "Ready" : (specialFirstBad ? `Rule break` : (violationsCount>0 ? "Violations" : (coverageOk && balanceOk ? "Optimal balance" : "Best found")));
+        const statusHint = !result ? `ver=${APP_VERSION}` : `range=${result.range} | coverage ${result.coveredPairs.size}/${result.totalPairs} | matches ${result.matches.length}`;
+
+        function renderKPIs(){
+          if (!result) return (
+            <div className="kpis">
+              <div className="kpi"><p className="kpiLabel">Players</p><p className="kpiValue">{players.length}</p></div>
+              <div className="kpi"><p className="kpiLabel">Female (ticked)</p><p className="kpiValue">{femaleSet.size}</p></div>
+              <div className="kpi"><p className="kpiLabel">Others maxConsecutive</p><p className="kpiValue">{othersMaxConsecutive}</p></div>
+              <div className="kpi"><p className="kpiLabel">Version</p><p className="kpiValue" style={{fontSize:12}}>{APP_VERSION}</p></div>
+            </div>
+          );
+          return (
+            <div className="kpis">
+              <div className="kpi"><p className="kpiLabel">Matches</p><p className="kpiValue">{result.matches.length}</p><div className="kpiHint">Done {Object.keys(doneMatches).length}</div></div>
+              <div className="kpi"><p className="kpiLabel">Coverage</p><p className="kpiValue">{coveragePct.toFixed(1)}%</p><div className="kpiHint">{result.coveredPairs.size}/{result.totalPairs} pairs</div></div>
+              <div className="kpi"><p className="kpiLabel">Balance (range)</p><p className="kpiValue">{result.range}</p><div className="kpiHint">max {result.maxPlayed} / min {result.minPlayed}</div></div>
+              <div className="kpi"><p className="kpiLabel">Rule breaks</p><p className="kpiValue">{violationsCount}</p><div className="kpiHint">รวมทุกกติกา</div></div>
+            </div>
+          );
+        }
+
+        function renderNotices(){
+          if (!result) return null;
+          const v = result.violations || [];
+          const notes = [];
+          notes.push(v.some(x => x.type === "match1_exclude") ? { type:"bad", text:`ละเมิด Match#1` } : { type:"ok", text:`ผ่าน Match#1` });
+          notes.push(v.some(x => x.type === "female_pair") ? { type:"bad", text:"ละเมิดกติกา: พบผู้หญิงคู่กันในทีมเดียวกัน" } : { type:"ok", text:"ผ่านกติกา: ไม่พบผู้หญิงคู่กันในทีมเดียวกัน" });
+          notes.push(v.some(x => x.type === "maxConsecutive") ? { type:"bad", text:`ละเมิด: คนอื่นเล่นติดกันเกินกติกา` } : { type:"ok", text:`ผ่าน: กติกาเล่นติดกัน` });
+          notes.push(coverageOk ? { type:"ok", text:"ครอบคลุมคู่พาร์ทเนอร์ครบ" } : { type:"warn", text:"ยังครอบคลุมคู่ไม่ครบ" });
+          notes.push(balanceOk ? { type:"ok", text:"Balance เท่ากันทั้งหมด" } : { type:"warn", text:`Balance ยังไม่เท่ากัน (range = ${result.range})` });
+          return notes.map((n,i)=>(<div key={i} className={`notice ${n.type}`}>{n.text}</div>));
+        }
+
+        function renderPlayerTable(){
+          if (!result) return null;
+          return (
+            <div className="card">
+              <div className="cardHeader"><h3 className="cardTitle">Player workload</h3></div>
+              <table>
+                <thead><tr><th>Player</th><th>Played</th><th>Rested</th></tr></thead>
+                <tbody>{players.map(p=><tr key={p}><td>{p}{femaleSet.has(p)?" (หญิง)":""}</td><td className="mono">{result.played.get(p)||0}</td><td className="mono">{result.rested.get(p)||0}</td></tr>)}</tbody>
+              </table>
+            </div>
+          );
+        }
+
+        function renderSchedule(){
+          if (!result) return ( <div className="card"><div className="cardHeader"><h3 className="cardTitle">Schedule</h3></div><div className="help">กด Generate เพื่อสร้างตาราง</div></div> );
+          return (
+            <div className="card">
+              <div className="cardHeader">
+                <h3 className="cardTitle">Schedule</h3>
+                <div>
+                  <button className="btn" onClick={() => downloadText(`schedule.csv`, toCSV(result.matches))} disabled={result.matches.length===0}>CSV</button>
+                  <button className="btn" onClick={() => downloadText(`schedule.json`, JSON.stringify({ matches: result.matches }, null, 2))} disabled={result.matches.length===0}>JSON</button>
+                </div>
+              </div>
+              <table>
+                <thead><tr><th className="checkCell">Done</th><th style={{width:84}}>Match</th><th>Team A</th><th>Team B</th></tr></thead>
+                <tbody>
+                  {result.matches.map((m, idx)=>{
+                    const matchNo = idx+1; const isDone = !!doneMatches[matchNo];
+                    return (
+                      <tr key={idx} className={isDone ? "doneRow" : ""}>
+                        <td className="checkCell"><div className="checkWrap"><input type="checkbox" checked={isDone} onChange={() => toggleDone(matchNo)} /></div></td>
+                        <td className="mono">{matchNo}</td><td>{formatTeam(m.t1)}</td><td>{formatTeam(m.t2)}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          );
+        }
+
+        return (
+          <div className="container">
+            <div className="topbar">
+              <div>
+                <h1 className="title">Badminton Doubles Scheduler <span className="badge">Responsive</span></h1>
+                <div className="pill"><span className={`dot ${status}`}></span><span><b>{statusLabel}</b> — {statusHint}</span></div>
+                <div className="progressWrap"><div className="progressBar" style={{width: result ? progressWidth : "0%"}}></div></div>
+              </div>
+            </div>
+            <div className="tabsWrap">
+              <button className={`tabBtn ${mobileTab==="summary"?"active":""}`} onClick={()=>setMobileTab("summary")}>Summary</button>
+              <button className={`tabBtn ${mobileTab==="schedule"?"active":""}`} onClick={()=>setMobileTab("schedule")}>Schedule</button>
+              <button className={`tabBtn ${mobileTab==="players"?"active":""}`} onClick={()=>setMobileTab("players")}>Players</button>
+              <button className={`tabBtn ${mobileTab==="settings"?"active":""}`} onClick={()=>setMobileTab("settings")}>Settings</button>
+            </div>
+            <div className="grid desktopOnly" style={{gridTemplateColumns:"420px 1fr"}}>
+              <div style={{display:"flex", flexDirection:"column", gap:14}}>
+                <SettingsCard namesText={namesText} setNamesText={setNamesText} players={players} femaleFlags={femaleFlags} setFemaleFlags={setFemaleFlags} baseMaxConsecutive={baseMaxConsecutive} othersMaxConsecutive={othersMaxConsecutive} hasSpecial={hasSpecial} maxMatches={maxMatches} setMaxMatches={setMaxMatches} timeBudgetMs={timeBudgetMs} setTimeBudgetMs={setTimeBudgetMs} addMatches={addMatches} setAddMatches={setAddMatches} working={working} playersCount={players.length} result={result} onGenerateFresh={onGenerateFresh} onContinue={onContinue} onClear={()=>{ setResult(null); setDoneMatches({}); }} />
+                <ResultsCard renderKPIs={renderKPIs} renderNotices={renderNotices} />
+                {renderPlayerTable()}
+              </div>
+              <div style={{display:"flex", flexDirection:"column", gap:14}}>{renderSchedule()}</div>
+            </div>
+            <div className="mobileOnly" style={{display:"flex", flexDirection:"column", gap:14}}>
+              {mobileTab==="summary" && <ResultsCard renderKPIs={renderKPIs} renderNotices={renderNotices} />}
+              {mobileTab==="schedule" && renderSchedule()}
+              {mobileTab==="players" && renderPlayerTable()}
+              {mobileTab==="settings" && ( <SettingsCard namesText={namesText} setNamesText={setNamesText} players={players} femaleFlags={femaleFlags} setFemaleFlags={setFemaleFlags} baseMaxConsecutive={baseMaxConsecutive} othersMaxConsecutive={othersMaxConsecutive} hasSpecial={hasSpecial} maxMatches={maxMatches} setMaxMatches={setMaxMatches} timeBudgetMs={timeBudgetMs} setTimeBudgetMs={setTimeBudgetMs} addMatches={addMatches} setAddMatches={setAddMatches} working={working} playersCount={players.length} result={result} onGenerateFresh={onGenerateFresh} onContinue={onContinue} onClear={()=>{ setResult(null); setDoneMatches({}); }} /> )}
+            </div>
+            <div className="bottomBar">
+              <div className="bottomBarInner">
+                <button className="btn primary" onClick={onGenerateFresh} disabled={working || players.length < 4}>{working ? "..." : "Generate"}</button>
+                <button className="btn primary" onClick={onContinue} disabled={working || !result}>{working ? "..." : `Continue (+${addMatches})`}</button>
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      const rootElement = document.getElementById("root");
+      const root = ReactDOM.createRoot(rootElement);
+      root.render(<App />);
+    } catch (err) {
+      console.error(err);
+      document.getElementById('root').innerHTML = '<div style="padding:24px; color:white;"><h2>⚠️ เกิดข้อผิดพลาด</h2></div>';
+    }
   </script>
 </body>
 </html>
